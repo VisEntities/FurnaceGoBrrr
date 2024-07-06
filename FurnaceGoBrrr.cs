@@ -597,6 +597,7 @@ namespace Oxide.Plugins
                         }
                     }
                 }
+
                 _oven.CancelInvoke(new Action(Cook));
                 _oven.SetFlag(BaseEntity.Flags.On, false, false, true);
             }
@@ -869,9 +870,10 @@ namespace Oxide.Plugins
                         if (customSmelter != null)
                         {
                             if (oven.IsOn())
+                            {
                                 oven.StopCooking();
-
-                            customSmelter.StartCooking();
+                                customSmelter.StartCooking();
+                            }
                         }
                     }
                 }

@@ -1,4 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿/*
+ * Copyright (C) 2024 Game4Freak.io
+ * This mod is provided under the Game4Freak EULA.
+ * Full legal terms can be found at https://game4freak.io/eula/
+ */
+
+using Newtonsoft.Json;
 using Oxide.Core;
 using System;
 using System.Collections;
@@ -67,6 +73,9 @@ namespace Oxide.Plugins
             [JsonProperty("Raw Item Short Name")]
             public string RawItemShortName { get; set; }
 
+            [JsonProperty("Units Smelted Per Cooking Cycle")]
+            public int UnitsSmeltedPerCookingCycle { get; set; }
+
             [JsonProperty("Amount Produced Per Unit Cooked")]
             public int AmountProducedPerUnitCooked { get; set; }
         }
@@ -132,26 +141,31 @@ namespace Oxide.Plugins
                             new CookableConfig
                             {
                                 RawItemShortName = "metal.ore",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "sulfur.ore",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "hq.metal.ore",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "can.beans.empty",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 15
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "can.tuna.empty",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 10
                             }
                         }
@@ -175,26 +189,31 @@ namespace Oxide.Plugins
                             new CookableConfig
                             {
                                 RawItemShortName = "metal.ore",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "sulfur.ore",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "hq.metal.ore",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "can.beans.empty",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 15
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "can.tuna.empty",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 10
                             }
                         }
@@ -218,26 +237,31 @@ namespace Oxide.Plugins
                             new CookableConfig
                             {
                                 RawItemShortName = "metal.ore",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "sulfur.ore",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "hq.metal.ore",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "can.beans.empty",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 15
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "can.tuna.empty",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 10
                             }
                         }
@@ -261,16 +285,19 @@ namespace Oxide.Plugins
                             new CookableConfig
                             {
                                 RawItemShortName = "crude.oil",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 3
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "can.beans.empty",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 15
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "can.tuna.empty",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 10
                             }
                         }
@@ -296,51 +323,61 @@ namespace Oxide.Plugins
                             new CookableConfig
                             {
                                 RawItemShortName = "bearmeat",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "chicken.raw",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "deermeat.raw",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "fish.raw",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "horsemeat.raw",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "humanmeat.raw",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "meat.boar",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "wolfmeat.raw",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "can.beans.empty",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 15
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "can.tuna.empty",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 10
                             }
                         }
@@ -364,51 +401,61 @@ namespace Oxide.Plugins
                             new CookableConfig
                             {
                                 RawItemShortName = "bearmeat",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "chicken.raw",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "deermeat.raw",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "fish.raw",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "horsemeat.raw",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "humanmeat.raw",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "meat.boar",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "wolfmeat.raw",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 1
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "can.beans.empty",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 15
                             },
                             new CookableConfig
                             {
                                 RawItemShortName = "can.tuna.empty",
+                                UnitsSmeltedPerCookingCycle = 1,
                                 AmountProducedPerUnitCooked = 10
                             }
                         }
@@ -458,11 +505,19 @@ namespace Oxide.Plugins
 
         private void OnServerInitialized(bool isStartup)
         {
-            CoroutineUtil.StartCoroutine(Guid.NewGuid().ToString(), InitializeAllOvensCoroutine());
+            CoroutineUtil.StartCoroutine(Guid.NewGuid().ToString(), InitializeOvensOnStartupCoroutine());
         }
 
-        private void OnEntitySpawned(BaseOven oven)
+        private void OnEntityBuilt(Planner planner, GameObject gameObject)
         {
+            if (planner == null || gameObject == null)
+                return;
+
+            BasePlayer player = planner.GetOwnerPlayer();
+            if (player == null)
+                return;
+
+            BaseOven oven = gameObject.ToBaseEntity() as BaseOven;
             if (oven == null)
                 return;
 
@@ -731,7 +786,19 @@ namespace Oxide.Plugins
                 }
 
                 float num = item.cookTimeLeft * -1f;
-                int num2 = 1 + Mathf.FloorToInt(num / itemModCookable.cookTime);
+
+                int unitsSmeltedPerCycle = 1;
+                foreach (CookableConfig cookable in _ovenConfig.Cookables)
+                {
+                    if (cookable.RawItemShortName == item.info.shortname)
+                    {
+                        unitsSmeltedPerCycle = cookable.UnitsSmeltedPerCookingCycle;
+                        break;
+                    }
+                }
+
+                int num2 = (1 + Mathf.FloorToInt(num / itemModCookable.cookTime)) * unitsSmeltedPerCycle;
+
                 item.cookTimeLeft = itemModCookable.cookTime - num % itemModCookable.cookTime;
                 
                 num2 = Mathf.Min(num2, item.amount);
@@ -857,7 +924,7 @@ namespace Oxide.Plugins
 
         #region Ovens Initialization
 
-        private IEnumerator InitializeAllOvensCoroutine()
+        private IEnumerator InitializeOvensOnStartupCoroutine()
         {
             foreach (BaseOven oven in BaseNetworkable.serverEntities.OfType<BaseOven>())
             {

@@ -25,6 +25,9 @@ namespace Oxide.Plugins
         private static Configuration _config;
         private CustomSmelterManager _customSmelterManager;
 
+        private const int MAXIMUM_SMELTING_SPEED = 20;
+        private static Dictionary<BaseOven, int> _vanillaOvenSmeltingSpeeds = new Dictionary<BaseOven, int>();
+
         #endregion Fields
 
         #region Configuration
@@ -88,6 +91,7 @@ namespace Oxide.Plugins
             if (string.Compare(_config.Version, Version.ToString()) < 0)
                 UpdateConfig();
 
+            ValidateAndCapSmeltingSpeeds();
             SaveConfig();
         }
 
@@ -485,6 +489,21 @@ namespace Oxide.Plugins
             };
         }
 
+        private void ValidateAndCapSmeltingSpeeds()
+        {
+            foreach (OvenConfig ovenConfig in _config.Ovens)
+            {
+                if (ovenConfig.SmeltingSpeed > MAXIMUM_SMELTING_SPEED)
+                {
+                    PrintWarning($"Smelting speed for {string.Join(", ", ovenConfig.PrefabShortNames)} exceeds the maximum allowed value of {MAXIMUM_SMELTING_SPEED}. " +
+                                             $"To prevent performance issues, the speed has been capped to {MAXIMUM_SMELTING_SPEED}. " +
+                                             $"Consider adjusting other parameters to achieve desired results.");
+
+                    ovenConfig.SmeltingSpeed = MAXIMUM_SMELTING_SPEED;
+                }
+            }
+        }
+
         #endregion Configuration
 
         #region Oxide Hooks
@@ -594,6 +613,10 @@ namespace Oxide.Plugins
                 _customSmelterManager = customSmelterManager;
                 _ovenConfig = ovenConfig;
 
+                if (!_vanillaOvenSmeltingSpeeds.ContainsKey(_oven))
+                    _vanillaOvenSmeltingSpeeds[_oven] = _oven.smeltSpeed;
+
+                _oven.smeltSpeed = _ovenConfig.SmeltingSpeed;
                 return this;
             }
 
@@ -614,6 +637,11 @@ namespace Oxide.Plugins
             private void OnDestroy()
             {
                 StopCooking();
+                if (_vanillaOvenSmeltingSpeeds.TryGetValue(_oven, out int originalSmeltingSpeed))
+                {
+                    _oven.smeltSpeed = originalSmeltingSpeed;
+                    _vanillaOvenSmeltingSpeeds.Remove(_oven);
+                }
                 _customSmelterManager.HandleOvenKilled(_oven);
             }
 
@@ -824,7 +852,7 @@ namespace Oxide.Plugins
                         }
                     }
 
-                    Item item2 = ItemManager.Create(itemModCookable.becomeOnCooked, amountOfBecome * num2, 0UL);
+                    Item item2 = ItemManager.Create(itemModCookable.becomeOnCooked, amountOfBecome, 0UL);
                     if (item2 != null && !item2.MoveToContainer(item.parent, -1, true, false, null, true) && !item2.MoveToContainer(item.parent, -1, true, false, null, true))
                     {
                         item2.Drop(item.parent.dropPosition, item.parent.dropVelocity, default(Quaternion));

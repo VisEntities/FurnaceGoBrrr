@@ -16,7 +16,7 @@ using Random = UnityEngine.Random;
 namespace Oxide.Plugins
 {
     [Info("Furnace Go Brrr", "VisEntities", "1.0.0")]
-    [Description(" ")]
+    [Description("Speeds up smelting in ovens.")]
     public class FurnaceGoBrrr : RustPlugin
     {
         #region Fields
@@ -46,6 +46,15 @@ namespace Oxide.Plugins
             [JsonProperty("Prefab Short Names")]
             public List<string> PrefabShortNames { get; set; }
 
+            [JsonProperty("Default Profile")]
+            public string DefaultProfile { get; set; }
+
+            [JsonProperty("Smelting Profiles")]
+            public Dictionary<string, SmeltingProfileConfig> SmeltingProfiles { get; set; }
+        }
+
+        private class SmeltingProfileConfig
+        {
             [JsonProperty("Smelting Speed")]
             public int SmeltingSpeed { get; set; }
 
@@ -54,6 +63,9 @@ namespace Oxide.Plugins
 
             [JsonProperty("Cookables")]
             public List<CookableConfig> Cookables { get; set; }
+
+            [JsonIgnore]
+            public string Permission { get; set; }
         }
 
         private class BurnableConfig
@@ -132,45 +144,100 @@ namespace Oxide.Plugins
                             "furnace",
                             "legacy_furnace"
                         },
-                        SmeltingSpeed = 3,
-                        Burnable = new BurnableConfig
+                        DefaultProfile = "default",
+                        SmeltingProfiles = new Dictionary<string, SmeltingProfileConfig>
                         {
-                            FuelConsumptionRate = 1,
-                            EnableByproductCreation = true,
-                            ByproductCreationRatePerUnitFuel = 1,
-                            ByproductCreationChance = 25
-                        },
-                        Cookables = new List<CookableConfig>
-                        {
-                            new CookableConfig
                             {
-                                RawItemShortName = "metal.ore",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
+                                "default", new SmeltingProfileConfig
+                                {
+                                    SmeltingSpeed = 3,
+                                    Burnable = new BurnableConfig
+                                    {
+                                        FuelConsumptionRate = 1,
+                                        EnableByproductCreation = true,
+                                        ByproductCreationRatePerUnitFuel = 1,
+                                        ByproductCreationChance = 25
+                                    },
+                                    Cookables = new List<CookableConfig>
+                                    {
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "metal.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "sulfur.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "hq.metal.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.beans.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 15
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.tuna.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 10
+                                        }
+                                    }
+                                }
                             },
-                            new CookableConfig
                             {
-                                RawItemShortName = "sulfur.ore",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "hq.metal.ore",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "can.beans.empty",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 15
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "can.tuna.empty",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 10
+                                "vip", new SmeltingProfileConfig
+                                {
+                                    SmeltingSpeed = 3,
+                                    Burnable = new BurnableConfig
+                                    {
+                                        FuelConsumptionRate = 1,
+                                        EnableByproductCreation = true,
+                                        ByproductCreationRatePerUnitFuel = 1,
+                                        ByproductCreationChance = 25
+                                    },
+                                    Cookables = new List<CookableConfig>
+                                    {
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "metal.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "sulfur.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "hq.metal.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.beans.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 15
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.tuna.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 10
+                                        }
+                                    }
+                                }
                             }
                         }
                     },
@@ -180,45 +247,100 @@ namespace Oxide.Plugins
                         {
                             "electricfurnace.deployed",
                         },
-                        SmeltingSpeed = 10,
-                        Burnable = new BurnableConfig
+                        DefaultProfile = "default",
+                        SmeltingProfiles = new Dictionary<string, SmeltingProfileConfig>
                         {
-                            FuelConsumptionRate = 0,
-                            EnableByproductCreation = false,
-                            ByproductCreationRatePerUnitFuel = 0,
-                            ByproductCreationChance = 0
-                        },
-                        Cookables = new List<CookableConfig>
-                        {
-                            new CookableConfig
                             {
-                                RawItemShortName = "metal.ore",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
+                                "default", new SmeltingProfileConfig
+                                {
+                                    SmeltingSpeed = 10,
+                                    Burnable = new BurnableConfig
+                                    {
+                                        FuelConsumptionRate = 0,
+                                        EnableByproductCreation = false,
+                                        ByproductCreationRatePerUnitFuel = 0,
+                                        ByproductCreationChance = 0
+                                    },
+                                    Cookables = new List<CookableConfig>
+                                    {
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "metal.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "sulfur.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "hq.metal.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.beans.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 15
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.tuna.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 10
+                                        }
+                                    }
+                                }
                             },
-                            new CookableConfig
                             {
-                                RawItemShortName = "sulfur.ore",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "hq.metal.ore",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "can.beans.empty",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 15
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "can.tuna.empty",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 10
+                                "vip", new SmeltingProfileConfig
+                                {
+                                    SmeltingSpeed = 10,
+                                    Burnable = new BurnableConfig
+                                    {
+                                        FuelConsumptionRate = 0,
+                                        EnableByproductCreation = false,
+                                        ByproductCreationRatePerUnitFuel = 0,
+                                        ByproductCreationChance = 0
+                                    },
+                                    Cookables = new List<CookableConfig>
+                                    {
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "metal.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "sulfur.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "hq.metal.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.beans.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 15
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.tuna.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 10
+                                        }
+                                    }
+                                }
                             }
                         }
                     },
@@ -228,45 +350,100 @@ namespace Oxide.Plugins
                         {
                             "furnace.large"
                         },
-                        SmeltingSpeed = 15,
-                        Burnable = new BurnableConfig
+                        DefaultProfile = "default",
+                        SmeltingProfiles = new Dictionary<string, SmeltingProfileConfig>
                         {
-                            FuelConsumptionRate = 1,
-                            EnableByproductCreation = true,
-                            ByproductCreationRatePerUnitFuel = 1,
-                            ByproductCreationChance = 25
-                        },
-                        Cookables = new List<CookableConfig>
-                        {
-                            new CookableConfig
                             {
-                                RawItemShortName = "metal.ore",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
+                                "default", new SmeltingProfileConfig
+                                {
+                                    SmeltingSpeed = 15,
+                                    Burnable = new BurnableConfig
+                                    {
+                                        FuelConsumptionRate = 1,
+                                        EnableByproductCreation = true,
+                                        ByproductCreationRatePerUnitFuel = 1,
+                                        ByproductCreationChance = 25
+                                    },
+                                    Cookables = new List<CookableConfig>
+                                    {
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "metal.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "sulfur.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "hq.metal.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.beans.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 15
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.tuna.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 10
+                                        }
+                                    }
+                                }
                             },
-                            new CookableConfig
                             {
-                                RawItemShortName = "sulfur.ore",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "hq.metal.ore",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "can.beans.empty",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 15
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "can.tuna.empty",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 10
+                                "vip", new SmeltingProfileConfig
+                                {
+                                    SmeltingSpeed = 15,
+                                    Burnable = new BurnableConfig
+                                    {
+                                        FuelConsumptionRate = 1,
+                                        EnableByproductCreation = true,
+                                        ByproductCreationRatePerUnitFuel = 1,
+                                        ByproductCreationChance = 25
+                                    },
+                                    Cookables = new List<CookableConfig>
+                                    {
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "metal.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "sulfur.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "hq.metal.ore",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.beans.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 15
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.tuna.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 10
+                                        }
+                                    }
+                                }
                             }
                         }
                     },
@@ -276,33 +453,76 @@ namespace Oxide.Plugins
                         {
                             "refinery_small_deployed"
                         },
-                        SmeltingSpeed = 3,
-                        Burnable = new BurnableConfig
+                        DefaultProfile = "default",
+                        SmeltingProfiles = new Dictionary<string, SmeltingProfileConfig>
                         {
-                            FuelConsumptionRate = 1,
-                            EnableByproductCreation = true,
-                            ByproductCreationRatePerUnitFuel = 1,
-                            ByproductCreationChance = 25
-                        },
-                        Cookables = new List<CookableConfig>
-                        {
-                            new CookableConfig
                             {
-                                RawItemShortName = "crude.oil",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 3
+                                "default", new SmeltingProfileConfig
+                                {
+                                    SmeltingSpeed = 3,
+                                    Burnable = new BurnableConfig
+                                    {
+                                        FuelConsumptionRate = 1,
+                                        EnableByproductCreation = true,
+                                        ByproductCreationRatePerUnitFuel = 1,
+                                        ByproductCreationChance = 25
+                                    },
+                                    Cookables = new List<CookableConfig>
+                                    {
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "crude.oil",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 3
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.beans.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 15
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.tuna.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 10
+                                        }
+                                    }
+                                }
                             },
-                            new CookableConfig
                             {
-                                RawItemShortName = "can.beans.empty",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 15
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "can.tuna.empty",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 10
+                                "vip", new SmeltingProfileConfig
+                                {
+                                    SmeltingSpeed = 3,
+                                    Burnable = new BurnableConfig
+                                    {
+                                        FuelConsumptionRate = 1,
+                                        EnableByproductCreation = true,
+                                        ByproductCreationRatePerUnitFuel = 1,
+                                        ByproductCreationChance = 25
+                                    },
+                                    Cookables = new List<CookableConfig>
+                                    {
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "crude.oil",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 3
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.beans.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 15
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.tuna.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 10
+                                        }
+                                    }
+                                }
                             }
                         }
                     },
@@ -314,75 +534,160 @@ namespace Oxide.Plugins
                             "skull_fire_pit",
                             "hobobarrel.deployed"
                         },
-                        SmeltingSpeed = 2,
-                        Burnable = new BurnableConfig
+                        DefaultProfile = "default",
+                        SmeltingProfiles = new Dictionary<string, SmeltingProfileConfig>
                         {
-                            FuelConsumptionRate = 1,
-                            EnableByproductCreation = true,
-                            ByproductCreationRatePerUnitFuel = 1,
-                            ByproductCreationChance = 25
-                        },
-                        Cookables = new List<CookableConfig>
-                        {
-                            new CookableConfig
                             {
-                                RawItemShortName = "bearmeat",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
+                                "default", new SmeltingProfileConfig
+                                {
+                                    SmeltingSpeed = 2,
+                                    Burnable = new BurnableConfig
+                                    {
+                                        FuelConsumptionRate = 1,
+                                        EnableByproductCreation = true,
+                                        ByproductCreationRatePerUnitFuel = 1,
+                                        ByproductCreationChance = 25
+                                    },
+                                    Cookables = new List<CookableConfig>
+                                    {
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "bearmeat",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "chicken.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "deermeat.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "fish.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "horsemeat.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "humanmeat.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "meat.boar",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "wolfmeat.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.beans.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 15
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.tuna.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 10
+                                        }
+                                    }
+                                }
                             },
-                            new CookableConfig
                             {
-                                RawItemShortName = "chicken.raw",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "deermeat.raw",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "fish.raw",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "horsemeat.raw",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "humanmeat.raw",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "meat.boar",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "wolfmeat.raw",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "can.beans.empty",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 15
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "can.tuna.empty",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 10
+                                "vip", new SmeltingProfileConfig
+                                {
+                                    SmeltingSpeed = 2,
+                                    Burnable = new BurnableConfig
+                                    {
+                                        FuelConsumptionRate = 1,
+                                        EnableByproductCreation = true,
+                                        ByproductCreationRatePerUnitFuel = 1,
+                                        ByproductCreationChance = 25
+                                    },
+                                    Cookables = new List<CookableConfig>
+                                    {
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "bearmeat",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "chicken.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "deermeat.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "fish.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "horsemeat.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "humanmeat.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "meat.boar",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "wolfmeat.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.beans.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 15
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.tuna.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 10
+                                        }
+                                    }
+                                }
                             }
                         }
                     },
@@ -392,75 +697,160 @@ namespace Oxide.Plugins
                         {
                             "bbq.deployed"
                         },
-                        SmeltingSpeed = 8,
-                        Burnable = new BurnableConfig
+                        DefaultProfile = "default",
+                        SmeltingProfiles = new Dictionary<string, SmeltingProfileConfig>
                         {
-                            FuelConsumptionRate = 1,
-                            EnableByproductCreation = true,
-                            ByproductCreationRatePerUnitFuel = 1,
-                            ByproductCreationChance = 25
-                        },
-                        Cookables = new List<CookableConfig>
-                        {
-                            new CookableConfig
                             {
-                                RawItemShortName = "bearmeat",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
+                                "default", new SmeltingProfileConfig
+                                {
+                                    SmeltingSpeed = 8,
+                                    Burnable = new BurnableConfig
+                                    {
+                                        FuelConsumptionRate = 1,
+                                        EnableByproductCreation = true,
+                                        ByproductCreationRatePerUnitFuel = 1,
+                                        ByproductCreationChance = 25
+                                    },
+                                    Cookables = new List<CookableConfig>
+                                    {
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "bearmeat",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "chicken.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "deermeat.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "fish.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "horsemeat.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "humanmeat.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "meat.boar",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "wolfmeat.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.beans.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 15
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.tuna.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 10
+                                        }
+                                    }
+                                }
                             },
-                            new CookableConfig
                             {
-                                RawItemShortName = "chicken.raw",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "deermeat.raw",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "fish.raw",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "horsemeat.raw",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "humanmeat.raw",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "meat.boar",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "wolfmeat.raw",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 1
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "can.beans.empty",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 15
-                            },
-                            new CookableConfig
-                            {
-                                RawItemShortName = "can.tuna.empty",
-                                UnitsSmeltedPerCookingCycle = 1,
-                                AmountProducedPerUnitCooked = 10
+                                "vip", new SmeltingProfileConfig
+                                {
+                                    SmeltingSpeed = 8,
+                                    Burnable = new BurnableConfig
+                                    {
+                                        FuelConsumptionRate = 1,
+                                        EnableByproductCreation = true,
+                                        ByproductCreationRatePerUnitFuel = 1,
+                                        ByproductCreationChance = 25
+                                    },
+                                    Cookables = new List<CookableConfig>
+                                    {
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "bearmeat",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "chicken.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "deermeat.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "fish.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "horsemeat.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "humanmeat.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "meat.boar",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "wolfmeat.raw",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 1
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.beans.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 15
+                                        },
+                                        new CookableConfig
+                                        {
+                                            RawItemShortName = "can.tuna.empty",
+                                            UnitsSmeltedPerCookingCycle = 1,
+                                            AmountProducedPerUnitCooked = 10
+                                        }
+                                    }
+                                }
                             }
                         }
                     },
@@ -475,15 +865,38 @@ namespace Oxide.Plugins
                             "jackolantern.happy",
                             "jackolantern.angry",
                         },
-                        SmeltingSpeed = 1,
-                        Burnable = new BurnableConfig
+                        DefaultProfile = "default",
+                        SmeltingProfiles = new Dictionary<string, SmeltingProfileConfig>
                         {
-                            FuelConsumptionRate = 1,
-                            EnableByproductCreation = false,
-                            ByproductCreationRatePerUnitFuel = 0,
-                            ByproductCreationChance = 0
-                        },
-                        Cookables = new List<CookableConfig>()
+                            {
+                                "default", new SmeltingProfileConfig
+                                {
+                                    SmeltingSpeed = 1,
+                                    Burnable = new BurnableConfig
+                                    {
+                                        FuelConsumptionRate = 1,
+                                        EnableByproductCreation = false,
+                                        ByproductCreationRatePerUnitFuel = 0,
+                                        ByproductCreationChance = 0
+                                    },
+                                    Cookables = new List<CookableConfig>()
+                                }
+                            },
+                            {
+                                "vip", new SmeltingProfileConfig
+                                {
+                                    SmeltingSpeed = 1,
+                                    Burnable = new BurnableConfig
+                                    {
+                                        FuelConsumptionRate = 1,
+                                        EnableByproductCreation = false,
+                                        ByproductCreationRatePerUnitFuel = 0,
+                                        ByproductCreationChance = 0
+                                    },
+                                    Cookables = new List<CookableConfig>()
+                                }
+                            }
+                        }
                     }
                 }
             };
@@ -493,13 +906,16 @@ namespace Oxide.Plugins
         {
             foreach (OvenConfig ovenConfig in _config.Ovens)
             {
-                if (ovenConfig.SmeltingSpeed > MAXIMUM_SMELTING_SPEED)
+                foreach (var profile in ovenConfig.SmeltingProfiles)
                 {
-                    PrintWarning($"Smelting speed for {string.Join(", ", ovenConfig.PrefabShortNames)} exceeds the maximum allowed value of {MAXIMUM_SMELTING_SPEED}. " +
-                                             $"To prevent performance issues, the speed has been capped to {MAXIMUM_SMELTING_SPEED}. " +
-                                             $"Consider adjusting other parameters to achieve desired results.");
+                    if (profile.Value.SmeltingSpeed > MAXIMUM_SMELTING_SPEED)
+                    {
+                        PrintWarning($"Smelting speed for '{string.Join(", ", ovenConfig.PrefabShortNames)}' in profile '{profile.Key}' exceeds the maximum allowed value of {MAXIMUM_SMELTING_SPEED}. " +
+                                     $"To prevent performance issues, the speed has been capped to {MAXIMUM_SMELTING_SPEED}. " +
+                                     $"Consider adjusting other parameters to achieve desired results.");
 
-                    ovenConfig.SmeltingSpeed = MAXIMUM_SMELTING_SPEED;
+                        profile.Value.SmeltingSpeed = MAXIMUM_SMELTING_SPEED;
+                    }
                 }
             }
         }
@@ -511,6 +927,8 @@ namespace Oxide.Plugins
         private void Init()
         {
             _plugin = this;
+            InitializeSmeltingProfiles();
+            PermissionUtil.RegisterPermissions();
             _customSmelterManager = new CustomSmelterManager();
         }
 
@@ -544,7 +962,11 @@ namespace Oxide.Plugins
             if (ovenConfig == null)
                 return;
 
-            CustomSmelterComponent customSmelter = _customSmelterManager.GetOrAddCustomSmelterToOven(oven, ovenConfig);        
+            SmeltingProfileConfig smeltingProfile = GetSmeltingProfileForPlayer(player, ovenConfig);
+            if (smeltingProfile == null)
+                return;
+
+            CustomSmelterComponent customSmelter = _customSmelterManager.GetOrAddCustomSmelterToOven(oven, smeltingProfile);        
         }
 
         private object OnOvenToggle(BaseOven oven, BasePlayer player)
@@ -571,16 +993,23 @@ namespace Oxide.Plugins
             if (oven == null)
                 return null;
 
+            BasePlayer player = FindPlayerById(oven.OwnerID);
+            if (player == null)
+                return null;
+
             OvenConfig ovenConfig = GetOvenConfig(oven);
             if (ovenConfig == null)
                 return null;
 
-            CustomSmelterComponent customSmelter = _customSmelterManager.GetOrAddCustomSmelterToOven(oven, ovenConfig);
-            if (customSmelter != null)
-            {
-                customSmelter.StartCooking();
-            }
-
+            SmeltingProfileConfig smeltingProfile = GetSmeltingProfileForPlayer(player, ovenConfig);
+            if (smeltingProfile == null)
+                return null;
+   
+            CustomSmelterComponent customSmelter = _customSmelterManager.GetOrAddCustomSmelterToOven(oven, smeltingProfile);
+            if (customSmelter == null)
+                return null;
+     
+            customSmelter.StartCooking();
             return true;
         }
 
@@ -594,29 +1023,29 @@ namespace Oxide.Plugins
 
             private BaseOven _oven;
             private CustomSmelterManager _customSmelterManager;
-            private OvenConfig _ovenConfig;
+            private SmeltingProfileConfig _smeltingProfile;
 
             #endregion Fields
 
             #region Component Management
 
-            public static CustomSmelterComponent InstallComponent(BaseOven oven, CustomSmelterManager customSmelterManager, OvenConfig ovenConfig)
+            public static CustomSmelterComponent InstallComponent(BaseOven oven, CustomSmelterManager customSmelterManager, SmeltingProfileConfig smeltingProfile)
             {
                 CustomSmelterComponent component = oven.gameObject.AddComponent<CustomSmelterComponent>();
-                component.InitializeComponent(customSmelterManager, ovenConfig);
+                component.InitializeComponent(customSmelterManager, smeltingProfile);
                 return component;
             }
 
-            public CustomSmelterComponent InitializeComponent(CustomSmelterManager customSmelterManager, OvenConfig ovenConfig)
+            public CustomSmelterComponent InitializeComponent(CustomSmelterManager customSmelterManager, SmeltingProfileConfig smeltingProfile)
             {
                 _oven = GetComponent<BaseOven>();
                 _customSmelterManager = customSmelterManager;
-                _ovenConfig = ovenConfig;
+                _smeltingProfile = smeltingProfile;
 
                 if (!_vanillaOvenSmeltingSpeeds.ContainsKey(_oven))
                     _vanillaOvenSmeltingSpeeds[_oven] = _oven.smeltSpeed;
 
-                _oven.smeltSpeed = _ovenConfig.SmeltingSpeed;
+                _oven.smeltSpeed = _smeltingProfile.SmeltingSpeed;
                 return this;
             }
 
@@ -703,7 +1132,7 @@ namespace Oxide.Plugins
                     }
                 }
 
-                IncreaseCookTime(0.5f * _ovenConfig.SmeltingSpeed);
+                IncreaseCookTime(0.5f * _smeltingProfile.SmeltingSpeed);
            
                 BaseEntity slot = _oven.GetSlot(BaseEntity.Slot.FireMod);
                 if (slot)
@@ -734,8 +1163,8 @@ namespace Oxide.Plugins
                 if (Interface.CallHook("OnFuelConsume", _oven, fuel, burnable) != null)
                     return;
 
-                if (_oven.allowByproductCreation && _ovenConfig.Burnable.EnableByproductCreation
-                    && burnable.byproductItem != null && ChanceSucceeded(_ovenConfig.Burnable.ByproductCreationChance))
+                if (_oven.allowByproductCreation && _smeltingProfile.Burnable.EnableByproductCreation
+                    && burnable.byproductItem != null && ChanceSucceeded(_smeltingProfile.Burnable.ByproductCreationChance))
                 {
                     Item item = ItemManager.Create(burnable.byproductItem, burnable.byproductAmount * GetCharcoalRate(), 0UL);
                     if (!item.MoveToContainer(_oven.inventory, -1, true, false, null, true))
@@ -758,12 +1187,12 @@ namespace Oxide.Plugins
 
             private int GetFuelRate()
             {
-                return _ovenConfig.Burnable.FuelConsumptionRate;
+                return _smeltingProfile.Burnable.FuelConsumptionRate;
             }
 
             private int GetCharcoalRate()
             {
-                return _ovenConfig.Burnable.ByproductCreationRatePerUnitFuel;
+                return _smeltingProfile.Burnable.ByproductCreationRatePerUnitFuel;
             }
 
             private void IncreaseCookTime(float smeltingSpeed)
@@ -816,7 +1245,7 @@ namespace Oxide.Plugins
                 float num = item.cookTimeLeft * -1f;
 
                 int unitsSmeltedPerCycle = 1;
-                foreach (CookableConfig cookable in _ovenConfig.Cookables)
+                foreach (CookableConfig cookable in _smeltingProfile.Cookables)
                 {
                     if (cookable.RawItemShortName == item.info.shortname)
                     {
@@ -843,7 +1272,7 @@ namespace Oxide.Plugins
                 if (itemModCookable.becomeOnCooked != null)
                 {
                     int amountOfBecome = itemModCookable.amountOfBecome;
-                    foreach (var cookable in _ovenConfig.Cookables)
+                    foreach (var cookable in _smeltingProfile.Cookables)
                     {
                         if (cookable.RawItemShortName == item.info.shortname)
                         {
@@ -870,6 +1299,16 @@ namespace Oxide.Plugins
             }
 
             #endregion Cooking Logic
+
+            #region Smelting Profile Update
+
+            public void UpdateSmeltingProfile(SmeltingProfileConfig newProfile)
+            {
+                _smeltingProfile = newProfile;
+                _oven.smeltSpeed = newProfile.SmeltingSpeed;
+            }
+
+            #endregion Smelting Profile Update
         }
 
         #endregion Custom Smelter Component
@@ -880,12 +1319,15 @@ namespace Oxide.Plugins
         {
             private Dictionary<BaseOven, CustomSmelterComponent> _ovenSmelters = new Dictionary<BaseOven, CustomSmelterComponent>();
 
-            public CustomSmelterComponent GetOrAddCustomSmelterToOven(BaseOven oven, OvenConfig ovenConfig)
+            public CustomSmelterComponent GetOrAddCustomSmelterToOven(BaseOven oven, SmeltingProfileConfig smeltingProfile)
             {
                 if (_ovenSmelters.TryGetValue(oven, out CustomSmelterComponent existingSmelter))
+                {
+                    existingSmelter.UpdateSmeltingProfile(smeltingProfile);
                     return existingSmelter;
+                }
 
-                CustomSmelterComponent newSmelter = CustomSmelterComponent.InstallComponent(oven, this, ovenConfig);
+                CustomSmelterComponent newSmelter = CustomSmelterComponent.InstallComponent(oven, this, smeltingProfile);
                 _ovenSmelters[oven] = newSmelter;
 
                 return newSmelter;
@@ -950,7 +1392,44 @@ namespace Oxide.Plugins
 
         #endregion Custom Smelter Manager
 
-        #region Ovens Initialization
+        #region Smelting Profile Helper Functions
+
+        private void InitializeSmeltingProfiles()
+        {
+            foreach (OvenConfig ovenConfig in _config.Ovens)
+            {
+                foreach (var profile in ovenConfig.SmeltingProfiles)
+                {
+                    string permissionSuffix = profile.Key;
+                    SmeltingProfileConfig smeltingProfile = profile.Value;
+
+                    string permission = PermissionUtil.AddPermission(permissionSuffix);
+                    smeltingProfile.Permission = permission;
+                }
+            }
+        }
+
+        private SmeltingProfileConfig GetSmeltingProfileForPlayer(BasePlayer player, OvenConfig ovenConfig)
+        {
+            foreach (SmeltingProfileConfig smeltingProfile in ovenConfig.SmeltingProfiles.Values)
+            {
+                if (PermissionUtil.HasPermission(player, smeltingProfile.Permission))
+                {
+                    return smeltingProfile;
+                }
+            }
+
+            if (ovenConfig.SmeltingProfiles.TryGetValue(ovenConfig.DefaultProfile, out SmeltingProfileConfig defaultProfile))
+            {
+                return defaultProfile;
+            }
+
+            return null;
+        }
+
+        #endregion Smelting Profile Helper Functions
+
+        #region Oven Initialization
 
         private IEnumerator InitializeOvensOnStartupCoroutine()
         {
@@ -958,16 +1437,24 @@ namespace Oxide.Plugins
             {
                 if (oven != null)
                 {
+                    BasePlayer player = FindPlayerById(oven.OwnerID);
+                    if (player == null)
+                        continue;
+
                     OvenConfig ovenConfig = GetOvenConfig(oven);
                     if (ovenConfig != null)
                     {
-                        CustomSmelterComponent customSmelter = _customSmelterManager.GetOrAddCustomSmelterToOven(oven, ovenConfig);
-                        if (customSmelter != null)
+                        SmeltingProfileConfig smeltingProfile = GetSmeltingProfileForPlayer(player, ovenConfig);
+                        if (smeltingProfile != null)
                         {
-                            if (oven.IsOn())
+                            CustomSmelterComponent customSmelter = _customSmelterManager.GetOrAddCustomSmelterToOven(oven, smeltingProfile);
+                            if (customSmelter != null)
                             {
-                                oven.StopCooking();
-                                customSmelter.StartCooking();
+                                if (oven.IsOn())
+                                {
+                                    oven.StopCooking();
+                                    customSmelter.StartCooking();
+                                }
                             }
                         }
                     }
@@ -977,7 +1464,7 @@ namespace Oxide.Plugins
             }
         }
 
-        #endregion Ovens Initialization
+        #endregion Oven Initialization
 
         #region Helper Classes
 
@@ -1017,13 +1504,18 @@ namespace Oxide.Plugins
 
         #region Helper Functions
 
+        public static BasePlayer FindPlayerById(ulong playerId)
+        {
+            return RelationshipManager.FindByID(playerId);
+        }
+
         private OvenConfig GetOvenConfig(BaseOven oven)
         {
-            foreach (var config in _config.Ovens)
+            foreach (OvenConfig ovenConfig in _config.Ovens)
             {
-                if (config.PrefabShortNames.Contains(oven.ShortPrefabName))
+                if (ovenConfig.PrefabShortNames.Contains(oven.ShortPrefabName))
                 {
-                    return config;
+                    return ovenConfig;
                 }
             }
             return null;
@@ -1035,5 +1527,45 @@ namespace Oxide.Plugins
         }
 
         #endregion Helper Functions
+
+        #region Permissions
+
+        private static class PermissionUtil
+        {
+            private static readonly List<string> _permissions = new List<string>
+            {
+                
+            };
+
+            public static string AddPermission(string suffix)
+            {
+                string permission = ConstructPermission(suffix);
+                if (!_permissions.Contains(permission))
+                {
+                    _permissions.Add(permission);
+                }
+                return permission;
+            }
+
+            public static void RegisterPermissions()
+            {
+                foreach (var permission in _permissions)
+                {
+                    _plugin.permission.RegisterPermission(permission, _plugin);
+                }
+            }
+
+            public static string ConstructPermission(string suffix)
+            {
+                return string.Join(".", nameof(FurnaceGoBrrr), suffix).ToLower();
+            }
+
+            public static bool HasPermission(BasePlayer player, string permissionName)
+            {
+                return _plugin.permission.UserHasPermission(player.UserIDString, permissionName);
+            }
+        }
+
+        #endregion Permissions
     }
 }

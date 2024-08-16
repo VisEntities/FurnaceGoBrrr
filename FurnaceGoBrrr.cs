@@ -15,7 +15,7 @@ using Random = UnityEngine.Random;
 
 namespace Oxide.Plugins
 {
-    [Info("Furnace Go Brrr", "VisEntities", "1.0.0")]
+    [Info("Furnace Go Brrr", "VisEntities", "1.0.1")]
     [Description("Speeds up smelting in ovens.")]
     public class FurnaceGoBrrr : RustPlugin
     {
@@ -1281,7 +1281,7 @@ namespace Oxide.Plugins
                         }
                     }
 
-                    Item item2 = ItemManager.Create(itemModCookable.becomeOnCooked, amountOfBecome, 0UL);
+                    Item item2 = ItemManager.Create(itemModCookable.becomeOnCooked, Mathf.Min(amountOfBecome, num2), 0UL);
                     if (item2 != null && !item2.MoveToContainer(item.parent, -1, true, false, null, true) && !item2.MoveToContainer(item.parent, -1, true, false, null, true))
                     {
                         item2.Drop(item.parent.dropPosition, item.parent.dropVelocity, default(Quaternion));

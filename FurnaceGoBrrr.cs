@@ -15,7 +15,7 @@ using Random = UnityEngine.Random;
 
 namespace Oxide.Plugins
 {
-    [Info("Furnace Go Brrr", "VisEntities", "1.0.1")]
+    [Info("Furnace Go Brrr", "VisEntities", "1.0.2")]
     [Description("Speeds up smelting in ovens.")]
     public class FurnaceGoBrrr : RustPlugin
     {
@@ -1197,7 +1197,7 @@ namespace Oxide.Plugins
 
             private void IncreaseCookTime(float smeltingSpeed)
             {
-                List<Item> itemsCurrentlyBeingCooked = Facepunch.Pool.GetList<Item>();
+                List<Item> itemsCurrentlyBeingCooked = Facepunch.Pool.Get<List<Item>>();
                 foreach (Item item in _oven.inventory.itemList)
                 {
                     if (item.HasFlag(global::Item.Flag.Cooking))
@@ -1212,7 +1212,7 @@ namespace Oxide.Plugins
                     CycleCooking(itemBeingCooked, cookingTimePerItem);
                 }
 
-                Facepunch.Pool.FreeList(ref itemsCurrentlyBeingCooked);
+                Facepunch.Pool.FreeUnmanaged(ref itemsCurrentlyBeingCooked);
             }
             
             private void CycleCooking(Item item, float cookingTime)

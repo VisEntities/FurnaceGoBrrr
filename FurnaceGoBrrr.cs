@@ -15,7 +15,7 @@ using Random = UnityEngine.Random;
 
 namespace Oxide.Plugins
 {
-    [Info("Furnace Go Brrr", "VisEntities", "1.0.2")]
+    [Info("Furnace Go Brrr", "VisEntities", "1.0.3")]
     [Description("Speeds up smelting in ovens.")]
     public class FurnaceGoBrrr : RustPlugin
     {
@@ -23,9 +23,9 @@ namespace Oxide.Plugins
 
         private static FurnaceGoBrrr _plugin;
         private static Configuration _config;
-        private CustomSmelterManager _customSmelterManager;
+        private CustomSmelterController _customSmelterController;
 
-        private const int MAXIMUM_SMELTING_SPEED = 20;
+        private const int CAPPED_SMELTING_SPEED = 20;
         private static Dictionary<BaseOven, int> _vanillaOvenSmeltingSpeeds = new Dictionary<BaseOven, int>();
 
         #endregion Fields
@@ -908,13 +908,13 @@ namespace Oxide.Plugins
             {
                 foreach (var profile in ovenConfig.SmeltingProfiles)
                 {
-                    if (profile.Value.SmeltingSpeed > MAXIMUM_SMELTING_SPEED)
+                    if (profile.Value.SmeltingSpeed > CAPPED_SMELTING_SPEED)
                     {
-                        PrintWarning($"Smelting speed for '{string.Join(", ", ovenConfig.PrefabShortNames)}' in profile '{profile.Key}' exceeds the maximum allowed value of {MAXIMUM_SMELTING_SPEED}. " +
-                                     $"To prevent performance issues, the speed has been capped to {MAXIMUM_SMELTING_SPEED}. " +
+                        PrintWarning($"Smelting speed for '{string.Join(", ", ovenConfig.PrefabShortNames)}' in profile '{profile.Key}' exceeds the maximum allowed value of {CAPPED_SMELTING_SPEED}. " +
+                                     $"To prevent performance issues, the speed has been capped to {CAPPED_SMELTING_SPEED}. " +
                                      $"Consider adjusting other parameters to achieve desired results.");
 
-                        profile.Value.SmeltingSpeed = MAXIMUM_SMELTING_SPEED;
+                        profile.Value.SmeltingSpeed = CAPPED_SMELTING_SPEED;
                     }
                 }
             }
@@ -929,13 +929,13 @@ namespace Oxide.Plugins
             _plugin = this;
             InitializeSmeltingProfiles();
             PermissionUtil.RegisterPermissions();
-            _customSmelterManager = new CustomSmelterManager();
+            _customSmelterController = new CustomSmelterController();
         }
 
         private void Unload()
         {
             CoroutineUtil.StopAllCoroutines();
-            _customSmelterManager.Unload();
+            _customSmelterController.Unload();
             _config = null;
             _plugin = null;
         }
@@ -966,7 +966,7 @@ namespace Oxide.Plugins
             if (smeltingProfile == null)
                 return;
 
-            CustomSmelterComponent customSmelter = _customSmelterManager.GetOrAddCustomSmelterToOven(oven, smeltingProfile);        
+            CustomSmelterComponent customSmelter = _customSmelterController.GetOrAddCustomSmelterToOven(oven, smeltingProfile);        
         }
 
         private object OnOvenToggle(BaseOven oven, BasePlayer player)
@@ -980,7 +980,7 @@ namespace Oxide.Plugins
             if (!oven.IsOn())
                 return null;
 
-            CustomSmelterComponent customSmelter = _customSmelterManager.GetCustomSmelterForOven(oven);
+            CustomSmelterComponent customSmelter = _customSmelterController.GetCustomSmelterForOven(oven);
             if (customSmelter == null)
                 return null;
 
@@ -1005,7 +1005,7 @@ namespace Oxide.Plugins
             if (smeltingProfile == null)
                 return null;
    
-            CustomSmelterComponent customSmelter = _customSmelterManager.GetOrAddCustomSmelterToOven(oven, smeltingProfile);
+            CustomSmelterComponent customSmelter = _customSmelterController.GetOrAddCustomSmelterToOven(oven, smeltingProfile);
             if (customSmelter == null)
                 return null;
      
@@ -1022,24 +1022,24 @@ namespace Oxide.Plugins
             #region Fields
 
             private BaseOven _oven;
-            private CustomSmelterManager _customSmelterManager;
+            private CustomSmelterController _customSmelterController;
             private SmeltingProfileConfig _smeltingProfile;
 
             #endregion Fields
 
             #region Component Management
 
-            public static CustomSmelterComponent InstallComponent(BaseOven oven, CustomSmelterManager customSmelterManager, SmeltingProfileConfig smeltingProfile)
+            public static CustomSmelterComponent InstallComponent(BaseOven oven, CustomSmelterController customSmelterController, SmeltingProfileConfig smeltingProfile)
             {
                 CustomSmelterComponent component = oven.gameObject.AddComponent<CustomSmelterComponent>();
-                component.InitializeComponent(customSmelterManager, smeltingProfile);
+                component.InitializeComponent(customSmelterController, smeltingProfile);
                 return component;
             }
 
-            public CustomSmelterComponent InitializeComponent(CustomSmelterManager customSmelterManager, SmeltingProfileConfig smeltingProfile)
+            public CustomSmelterComponent InitializeComponent(CustomSmelterController customSmelterController, SmeltingProfileConfig smeltingProfile)
             {
                 _oven = GetComponent<BaseOven>();
-                _customSmelterManager = customSmelterManager;
+                _customSmelterController = customSmelterController;
                 _smeltingProfile = smeltingProfile;
 
                 if (!_vanillaOvenSmeltingSpeeds.ContainsKey(_oven))
@@ -1071,7 +1071,7 @@ namespace Oxide.Plugins
                     _oven.smeltSpeed = originalSmeltingSpeed;
                     _vanillaOvenSmeltingSpeeds.Remove(_oven);
                 }
-                _customSmelterManager.HandleOvenKilled(_oven);
+                _customSmelterController.HandleOvenKilled(_oven);
             }
 
             #endregion Component Lifecycle
@@ -1271,7 +1271,7 @@ namespace Oxide.Plugins
 
                 if (itemModCookable.becomeOnCooked != null)
                 {
-                    int amountOfBecome = itemModCookable.amountOfBecome;
+                    int amountOfBecome = 1;
                     foreach (var cookable in _smeltingProfile.Cookables)
                     {
                         if (cookable.RawItemShortName == item.info.shortname)
@@ -1281,7 +1281,7 @@ namespace Oxide.Plugins
                         }
                     }
 
-                    Item item2 = ItemManager.Create(itemModCookable.becomeOnCooked, Mathf.Min(amountOfBecome, num2), 0UL);
+                    Item item2 = ItemManager.Create(itemModCookable.becomeOnCooked, amountOfBecome * num2, 0UL);
                     if (item2 != null && !item2.MoveToContainer(item.parent, -1, true, false, null, true) && !item2.MoveToContainer(item.parent, -1, true, false, null, true))
                     {
                         item2.Drop(item.parent.dropPosition, item.parent.dropVelocity, default(Quaternion));
@@ -1291,6 +1291,7 @@ namespace Oxide.Plugins
                         }
                     }
                 }
+
             }
 
             private void OvenFull()
@@ -1313,9 +1314,9 @@ namespace Oxide.Plugins
 
         #endregion Custom Smelter Component
 
-        #region Custom Smelter Manager
+        #region Custom Smelter Controller
 
-        private class CustomSmelterManager
+        private class CustomSmelterController
         {
             private Dictionary<BaseOven, CustomSmelterComponent> _ovenSmelters = new Dictionary<BaseOven, CustomSmelterComponent>();
 
@@ -1390,7 +1391,7 @@ namespace Oxide.Plugins
             }
         }
 
-        #endregion Custom Smelter Manager
+        #endregion Custom Smelter Controller
 
         #region Smelting Profile Helper Functions
 
@@ -1447,7 +1448,7 @@ namespace Oxide.Plugins
                         SmeltingProfileConfig smeltingProfile = GetSmeltingProfileForPlayer(player, ovenConfig);
                         if (smeltingProfile != null)
                         {
-                            CustomSmelterComponent customSmelter = _customSmelterManager.GetOrAddCustomSmelterToOven(oven, smeltingProfile);
+                            CustomSmelterComponent customSmelter = _customSmelterController.GetOrAddCustomSmelterToOven(oven, smeltingProfile);
                             if (customSmelter != null)
                             {
                                 if (oven.IsOn())

@@ -15,7 +15,7 @@ using Random = UnityEngine.Random;
 
 namespace Oxide.Plugins
 {
-    [Info("Furnace Go Brrr", "VisEntities", "1.0.3")]
+    [Info("Furnace Go Brrr", "VisEntities", "1.1.0")]
     [Description("Speeds up smelting in ovens.")]
     public class FurnaceGoBrrr : RustPlugin
     {
@@ -23,7 +23,7 @@ namespace Oxide.Plugins
 
         private static FurnaceGoBrrr _plugin;
         private static Configuration _config;
-        private CustomSmelterController _customSmelterController;
+        private CustomSmelterManager _customSmelterManager = new CustomSmelterManager();
 
         private const int CAPPED_SMELTING_SPEED = 20;
         private static Dictionary<BaseOven, int> _vanillaOvenSmeltingSpeeds = new Dictionary<BaseOven, int>();
@@ -55,6 +55,9 @@ namespace Oxide.Plugins
 
         private class SmeltingProfileConfig
         {
+            [JsonProperty("Priority")]
+            public int Priority { get; set; }
+
             [JsonProperty("Smelting Speed")]
             public int SmeltingSpeed { get; set; }
 
@@ -126,6 +129,25 @@ namespace Oxide.Plugins
             if (string.Compare(_config.Version, "1.0.0") < 0)
                 _config = defaultConfig;
 
+            if (string.Compare(_config.Version, "1.1.0") < 0)
+            {
+                foreach (OvenConfig ovenConfig in _config.Ovens)
+                {
+                    foreach (var kvp in ovenConfig.SmeltingProfiles)
+                    {
+                        SmeltingProfileConfig profile = kvp.Value;
+
+                        if (profile.Priority == 0)
+                        {
+                            if (kvp.Key.Equals("vip", StringComparison.OrdinalIgnoreCase))
+                                profile.Priority = 1;
+                            else
+                                profile.Priority = 0;
+                        }
+                    }
+                }
+            }
+
             PrintWarning("Config update complete! Updated from version " + _config.Version + " to " + Version.ToString());
             _config.Version = Version.ToString();
         }
@@ -150,6 +172,7 @@ namespace Oxide.Plugins
                             {
                                 "default", new SmeltingProfileConfig
                                 {
+                                    Priority = 0,
                                     SmeltingSpeed = 3,
                                     Burnable = new BurnableConfig
                                     {
@@ -196,6 +219,7 @@ namespace Oxide.Plugins
                             {
                                 "vip", new SmeltingProfileConfig
                                 {
+                                    Priority = 1,
                                     SmeltingSpeed = 3,
                                     Burnable = new BurnableConfig
                                     {
@@ -253,6 +277,7 @@ namespace Oxide.Plugins
                             {
                                 "default", new SmeltingProfileConfig
                                 {
+                                    Priority = 0,
                                     SmeltingSpeed = 10,
                                     Burnable = new BurnableConfig
                                     {
@@ -299,6 +324,7 @@ namespace Oxide.Plugins
                             {
                                 "vip", new SmeltingProfileConfig
                                 {
+                                    Priority = 1,
                                     SmeltingSpeed = 10,
                                     Burnable = new BurnableConfig
                                     {
@@ -356,6 +382,7 @@ namespace Oxide.Plugins
                             {
                                 "default", new SmeltingProfileConfig
                                 {
+                                    Priority = 0,
                                     SmeltingSpeed = 15,
                                     Burnable = new BurnableConfig
                                     {
@@ -402,6 +429,7 @@ namespace Oxide.Plugins
                             {
                                 "vip", new SmeltingProfileConfig
                                 {
+                                    Priority = 1,
                                     SmeltingSpeed = 15,
                                     Burnable = new BurnableConfig
                                     {
@@ -459,6 +487,7 @@ namespace Oxide.Plugins
                             {
                                 "default", new SmeltingProfileConfig
                                 {
+                                    Priority = 0,
                                     SmeltingSpeed = 3,
                                     Burnable = new BurnableConfig
                                     {
@@ -493,6 +522,7 @@ namespace Oxide.Plugins
                             {
                                 "vip", new SmeltingProfileConfig
                                 {
+                                    Priority = 1,
                                     SmeltingSpeed = 3,
                                     Burnable = new BurnableConfig
                                     {
@@ -540,6 +570,7 @@ namespace Oxide.Plugins
                             {
                                 "default", new SmeltingProfileConfig
                                 {
+                                    Priority = 0,
                                     SmeltingSpeed = 2,
                                     Burnable = new BurnableConfig
                                     {
@@ -616,6 +647,7 @@ namespace Oxide.Plugins
                             {
                                 "vip", new SmeltingProfileConfig
                                 {
+                                    Priority = 1,
                                     SmeltingSpeed = 2,
                                     Burnable = new BurnableConfig
                                     {
@@ -703,6 +735,7 @@ namespace Oxide.Plugins
                             {
                                 "default", new SmeltingProfileConfig
                                 {
+                                    Priority = 0,
                                     SmeltingSpeed = 8,
                                     Burnable = new BurnableConfig
                                     {
@@ -779,6 +812,7 @@ namespace Oxide.Plugins
                             {
                                 "vip", new SmeltingProfileConfig
                                 {
+                                    Priority = 1,
                                     SmeltingSpeed = 8,
                                     Burnable = new BurnableConfig
                                     {
@@ -871,6 +905,7 @@ namespace Oxide.Plugins
                             {
                                 "default", new SmeltingProfileConfig
                                 {
+                                    Priority = 0,
                                     SmeltingSpeed = 1,
                                     Burnable = new BurnableConfig
                                     {
@@ -885,6 +920,7 @@ namespace Oxide.Plugins
                             {
                                 "vip", new SmeltingProfileConfig
                                 {
+                                    Priority = 1,
                                     SmeltingSpeed = 1,
                                     Burnable = new BurnableConfig
                                     {
@@ -929,13 +965,12 @@ namespace Oxide.Plugins
             _plugin = this;
             InitializeSmeltingProfiles();
             PermissionUtil.RegisterPermissions();
-            _customSmelterController = new CustomSmelterController();
         }
 
         private void Unload()
         {
             CoroutineUtil.StopAllCoroutines();
-            _customSmelterController.Unload();
+            _customSmelterManager.Unload();
             _config = null;
             _plugin = null;
         }
@@ -962,11 +997,11 @@ namespace Oxide.Plugins
             if (ovenConfig == null)
                 return;
 
-            SmeltingProfileConfig smeltingProfile = GetSmeltingProfileForPlayer(player, ovenConfig);
+            SmeltingProfileConfig smeltingProfile = GetSmeltingProfile(player, ovenConfig);
             if (smeltingProfile == null)
                 return;
 
-            CustomSmelterComponent customSmelter = _customSmelterController.GetOrAddCustomSmelterToOven(oven, smeltingProfile);        
+            CustomSmelterComponent customSmelter = _customSmelterManager.GetOrAddCustomSmelterToOven(oven, smeltingProfile);        
         }
 
         private object OnOvenToggle(BaseOven oven, BasePlayer player)
@@ -980,7 +1015,7 @@ namespace Oxide.Plugins
             if (!oven.IsOn())
                 return null;
 
-            CustomSmelterComponent customSmelter = _customSmelterController.GetCustomSmelterForOven(oven);
+            CustomSmelterComponent customSmelter = _customSmelterManager.GetCustomSmelterForOven(oven);
             if (customSmelter == null)
                 return null;
 
@@ -1001,11 +1036,11 @@ namespace Oxide.Plugins
             if (ovenConfig == null)
                 return null;
 
-            SmeltingProfileConfig smeltingProfile = GetSmeltingProfileForPlayer(player, ovenConfig);
+            SmeltingProfileConfig smeltingProfile = GetSmeltingProfile(player, ovenConfig);
             if (smeltingProfile == null)
                 return null;
    
-            CustomSmelterComponent customSmelter = _customSmelterController.GetOrAddCustomSmelterToOven(oven, smeltingProfile);
+            CustomSmelterComponent customSmelter = _customSmelterManager.GetOrAddCustomSmelterToOven(oven, smeltingProfile);
             if (customSmelter == null)
                 return null;
      
@@ -1022,24 +1057,24 @@ namespace Oxide.Plugins
             #region Fields
 
             private BaseOven _oven;
-            private CustomSmelterController _customSmelterController;
+            private CustomSmelterManager _manager;
             private SmeltingProfileConfig _smeltingProfile;
 
             #endregion Fields
 
-            #region Component Management
+            #region Initialization and Quitting
 
-            public static CustomSmelterComponent InstallComponent(BaseOven oven, CustomSmelterController customSmelterController, SmeltingProfileConfig smeltingProfile)
+            public static CustomSmelterComponent Install(BaseOven oven, CustomSmelterManager manager, SmeltingProfileConfig smeltingProfile)
             {
-                CustomSmelterComponent component = oven.gameObject.AddComponent<CustomSmelterComponent>();
-                component.InitializeComponent(customSmelterController, smeltingProfile);
-                return component;
+                CustomSmelterComponent customSmelter = oven.gameObject.AddComponent<CustomSmelterComponent>();
+                customSmelter.Initialize(manager, smeltingProfile);
+                return customSmelter;
             }
 
-            public CustomSmelterComponent InitializeComponent(CustomSmelterController customSmelterController, SmeltingProfileConfig smeltingProfile)
+            public CustomSmelterComponent Initialize(CustomSmelterManager manager, SmeltingProfileConfig smeltingProfile)
             {
                 _oven = GetComponent<BaseOven>();
-                _customSmelterController = customSmelterController;
+                _manager = manager;
                 _smeltingProfile = smeltingProfile;
 
                 if (!_vanillaOvenSmeltingSpeeds.ContainsKey(_oven))
@@ -1054,12 +1089,12 @@ namespace Oxide.Plugins
                 return gameObject.GetComponent<CustomSmelterComponent>();
             }
 
-            public void DestroyComponent()
+            public void DestroySelf()
             {
                 DestroyImmediate(this);
             }
 
-            #endregion Component Management
+            #endregion Initialization and Quitting
 
             #region Component Lifecycle
 
@@ -1071,7 +1106,7 @@ namespace Oxide.Plugins
                     _oven.smeltSpeed = originalSmeltingSpeed;
                     _vanillaOvenSmeltingSpeeds.Remove(_oven);
                 }
-                _customSmelterController.HandleOvenKilled(_oven);
+                _manager.HandleOvenKilled(_oven);
             }
 
             #endregion Component Lifecycle
@@ -1301,7 +1336,7 @@ namespace Oxide.Plugins
 
             #endregion Cooking Logic
 
-            #region Smelting Profile Update
+            #region Smelting Profile
 
             public void UpdateSmeltingProfile(SmeltingProfileConfig newProfile)
             {
@@ -1309,14 +1344,14 @@ namespace Oxide.Plugins
                 _oven.smeltSpeed = newProfile.SmeltingSpeed;
             }
 
-            #endregion Smelting Profile Update
+            #endregion Smelting Profile
         }
 
         #endregion Custom Smelter Component
 
-        #region Custom Smelter Controller
+        #region Custom Smelter Manager
 
-        private class CustomSmelterController
+        private class CustomSmelterManager
         {
             private Dictionary<BaseOven, CustomSmelterComponent> _ovenSmelters = new Dictionary<BaseOven, CustomSmelterComponent>();
 
@@ -1328,7 +1363,7 @@ namespace Oxide.Plugins
                     return existingSmelter;
                 }
 
-                CustomSmelterComponent newSmelter = CustomSmelterComponent.InstallComponent(oven, this, smeltingProfile);
+                CustomSmelterComponent newSmelter = CustomSmelterComponent.Install(oven, this, smeltingProfile);
                 _ovenSmelters[oven] = newSmelter;
 
                 return newSmelter;
@@ -1352,7 +1387,7 @@ namespace Oxide.Plugins
                     if (customSmelter != null)
                     {
                         bool wasOn = oven.IsOn();
-                        customSmelter.DestroyComponent();
+                        customSmelter.DestroySelf();
                         if (wasOn && oven != null)
                         {
                             oven.StartCooking();
@@ -1367,7 +1402,7 @@ namespace Oxide.Plugins
             {
                 if (_ovenSmelters.TryGetValue(oven, out CustomSmelterComponent customSmelter) && customSmelter != null)
                 {
-                    customSmelter.DestroyComponent();
+                    customSmelter.DestroySelf();
                     _ovenSmelters.Remove(oven);
                 }
             }
@@ -1391,9 +1426,9 @@ namespace Oxide.Plugins
             }
         }
 
-        #endregion Custom Smelter Controller
+        #endregion Custom Smelter Manager
 
-        #region Smelting Profile Helper Functions
+        #region Smelting Profile Initialization and Retrieval
 
         private void InitializeSmeltingProfiles()
         {
@@ -1410,25 +1445,35 @@ namespace Oxide.Plugins
             }
         }
 
-        private SmeltingProfileConfig GetSmeltingProfileForPlayer(BasePlayer player, OvenConfig ovenConfig)
+        private SmeltingProfileConfig GetSmeltingProfile(BasePlayer player, OvenConfig ovenConfig)
         {
-            foreach (SmeltingProfileConfig smeltingProfile in ovenConfig.SmeltingProfiles.Values)
+            SmeltingProfileConfig bestProfile = null;
+            int highestPriority = int.MinValue;
+
+            foreach (var kvp in ovenConfig.SmeltingProfiles)
             {
-                if (PermissionUtil.HasPermission(player, smeltingProfile.Permission))
+                SmeltingProfileConfig profile = kvp.Value;
+
+                if (PermissionUtil.HasPermission(player, profile.Permission))
                 {
-                    return smeltingProfile;
+                    if (profile.Priority > highestPriority)
+                    {
+                        highestPriority = profile.Priority;
+                        bestProfile = profile;
+                    }
                 }
             }
 
+            if (bestProfile != null)
+                return bestProfile;
+
             if (ovenConfig.SmeltingProfiles.TryGetValue(ovenConfig.DefaultProfile, out SmeltingProfileConfig defaultProfile))
-            {
                 return defaultProfile;
-            }
 
             return null;
         }
 
-        #endregion Smelting Profile Helper Functions
+        #endregion Smelting Profile Initialization and Retrieval
 
         #region Oven Initialization
 
@@ -1445,10 +1490,10 @@ namespace Oxide.Plugins
                     OvenConfig ovenConfig = GetOvenConfig(oven);
                     if (ovenConfig != null)
                     {
-                        SmeltingProfileConfig smeltingProfile = GetSmeltingProfileForPlayer(player, ovenConfig);
+                        SmeltingProfileConfig smeltingProfile = GetSmeltingProfile(player, ovenConfig);
                         if (smeltingProfile != null)
                         {
-                            CustomSmelterComponent customSmelter = _customSmelterController.GetOrAddCustomSmelterToOven(oven, smeltingProfile);
+                            CustomSmelterComponent customSmelter = _customSmelterManager.GetOrAddCustomSmelterToOven(oven, smeltingProfile);
                             if (customSmelter != null)
                             {
                                 if (oven.IsOn())
@@ -1473,16 +1518,31 @@ namespace Oxide.Plugins
         {
             private static readonly Dictionary<string, Coroutine> _activeCoroutines = new Dictionary<string, Coroutine>();
 
-            public static void StartCoroutine(string coroutineName, IEnumerator coroutineFunction)
+            public static Coroutine StartCoroutine(string baseCoroutineName, IEnumerator coroutineFunction, string uniqueSuffix = null)
             {
+                string coroutineName;
+
+                if (uniqueSuffix != null)
+                    coroutineName = baseCoroutineName + "_" + uniqueSuffix;
+                else
+                    coroutineName = baseCoroutineName;
+
                 StopCoroutine(coroutineName);
 
                 Coroutine coroutine = ServerMgr.Instance.StartCoroutine(coroutineFunction);
                 _activeCoroutines[coroutineName] = coroutine;
+                return coroutine;
             }
 
-            public static void StopCoroutine(string coroutineName)
+            public static void StopCoroutine(string baseCoroutineName, string uniqueSuffix = null)
             {
+                string coroutineName;
+
+                if (uniqueSuffix != null)
+                    coroutineName = baseCoroutineName + "_" + uniqueSuffix;
+                else
+                    coroutineName = baseCoroutineName;
+
                 if (_activeCoroutines.TryGetValue(coroutineName, out Coroutine coroutine))
                 {
                     if (coroutine != null)
@@ -1522,9 +1582,16 @@ namespace Oxide.Plugins
             return null;
         }
 
-        private static bool ChanceSucceeded(int probability)
+        private static bool ChanceSucceeded(int percent)
         {
-            return Random.Range(0, 100) < probability;
+            if (percent <= 0)
+                return false;
+
+            if (percent >= 100)
+                return true;
+
+            float roll = Random.Range(0f, 100f);
+            return roll < percent;
         }
 
         #endregion Helper Functions
